@@ -1,0 +1,1551 @@
+<!doctype html>
+<html>
+<head>
+    <title>UNSW Cognition Lab</title>
+    <script src="jatos.js"></script>
+
+    <script src="./resources/js/jquery-3.4.1.min.js"></script>
+    <script src="./resources/js/jspsych.js"></script>
+    <script src="./resources/js/seedrandom.min.js"></script>
+    <script src="./resources/js/plugins/jspsych-demographic-response.js"></script>
+    <script src="./resources/js/plugins/jspsych-fullscreen.js"></script>
+    <script src="./resources/js/plugins/jspsych-html-button-response.js"></script>
+    <script src="./resources/js/plugins/jspsych-html-keyboard-response-mlp.js"></script>
+    <script src="./resources/js/plugins/jspsych-instructions.js"></script>
+    <script src="./resources/js/plugins/jspsych-survey-multi-choice-mlp.js"></script>
+    <script src="./resources/js/plugins/jspsych-survey-text-mlp.js"></script>
+    <script src="./resources/js/plugins/jspsych-visual-search-flex.js"></script>
+    <script src="./resources/js/plugins/jspsych-preload.js"></script>
+    <script src="./resources/js/plugins/jspsych-audio-keyboard-response-mlp.js"></script>
+
+    <link href="./resources/js/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+
+    <style>
+
+    .fancyButtonRed {
+        display: inline-block;
+        padding: 15px 15px;
+        font-size: 24px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #AF504C;
+        border: none;
+        box-shadow: 0 9px #999;
+    }
+    .fancyButtonRed:hover {background-color: #8e413e}
+    .fancyButtonRed:active {
+        background-color: #8e413e;
+        box-shadow: 0 5px #666;
+        transform: translateY(4px);
+    }
+
+    .endTestButton {
+        display: inline-block;
+        padding: 5px 5px;
+        font-size: 110%;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #505050;
+        border: 4px solid black;
+    }
+    .endTestButton:hover {background-color: #8e413e}
+
+    .choiceTestButton {
+        padding: 0px 0px;
+        width: 200px;
+        height: 200px;
+        cursor: grab;
+        text-align: center;
+        outline: none;
+        color: #fff;
+        background-color: #000000;
+        border: 2px solid #808080;
+    }
+    .choiceTestButton:hover {border: 2px solid white}
+
+    .consentButton {
+        display: inline-block;
+        padding: 6px 12px;
+        margin: 0px;
+        font-size: 14px;
+        font-weight: 400;
+        font-family: 'Open Sans', 'Arial', sans-serif;
+        cursor: pointer;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-image: none;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: #333;
+        background-color: #B8E9AC;
+        border: 2px solid black;
+    }
+    .consentButton:hover {background-color: #81B474}
+
+    .noConsentButton {
+        display: inline-block;
+        padding: 6px 12px;
+        margin: 0px;
+        font-size: 14px;
+        font-weight: 400;
+        font-family: 'Open Sans', 'Arial', sans-serif;
+        cursor: pointer;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-image: none;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: #333;
+        background-color: #f09c9c;
+        border: 2px solid black;
+    }
+    .noConsentButton:hover {background-color: #cc8585}
+
+    .conDets {
+        font-size: 90%;
+        line-height: 120%;
+    }
+
+    .row {
+      display: flex;
+    }
+
+    .column {
+      flex: 33.33%;
+      padding: 5px;
+    }
+
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    #jspsychTargetMLP {
+        text-align: center;
+        position: absolute;
+        top: 0%;
+        left: 50%;
+        margin-top: 0;
+        margin-left: -400px;
+        height: 100%;
+        width: 800px;
+        overflow-y: auto;
+        overflow-x: auto;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 110%;
+        color: black;
+    }
+
+    body {background-color: white;}
+
+    html, body {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+    }
+
+    </style>
+</head>
+
+<body>
+    <div id="jspsychTargetMLP"></div>
+</body>
+<script>
+
+
+document.body.style.backgroundColor = "hsl(0,0%,"+lightnessVal+"%)";
+
+var realVersion = true;
+var jatosVersion = true;
+var sonaVersion = true;
+
+console.log('e2_v1');
+console.log('realVersion: ' + realVersion);
+console.log('jatosVersion: ' + jatosVersion);
+console.log('sonaVersion: ' + sonaVersion);
+
+var goodBlockScore = 6950;
+
+var exptPhase = 0;      // 0 = practice, 1 = main task
+var instSet = 0;
+
+Math.seedrandom();
+rSeed = Math.floor(Math.random()*9999999);
+Math.seedrandom(rSeed);
+
+
+var numStimLocs = 6;
+
+var colBalance;
+
+var sona_id = 0;
+var resultsID = 0;
+
+var prizeStr = 'a $15 Coles/Woolworths Voucher';
+var prizeStrShort = 'a $15 Voucher';
+
+// if (realVersion == false) {
+//     colBalance = 6;
+// }
+
+// This next bit gets the results ID, which will be passed in the parameters in the URL
+// It uses code from https://www.xul.fr/javascript/parameters.php
+if (location.search.substring(1)) {
+    var parameters = location.search.substring(1).split("&");
+    var temp = parameters[0].split("=");
+    if (temp[1]) {resultsID = unescape(temp[1])};
+};
+
+
+var locArray = [];
+for (ii = 0; ii < numStimLocs; ii++) {
+    locArray[ii] = ii;
+}
+
+// If these values aren't set, assign them randomly
+if (colBalance != 1 && colBalance != 2 && colBalance != 3 && colBalance != 4 && colBalance != 5 && colBalance != 6) {colBalance = Math.floor(Math.random() * 6) + 1;}
+
+var fieldsToIgnore = ['internal_node_id', 'stimulus', 'view_history', 'question_order', 'success', 'failed_images', 'failed_audio', 'failed_video', 'timeout'];
+
+var winWidth = 800;   //800
+
+var ts = 'resources/images/';
+
+var distractShapeStr = [];
+distractShapeStr[0] = ts + 'circ_';
+distractShapeStr[1] = ts + 'diam_';
+
+var targetShapeStr = [];
+targetShapeStr[0] = ts + 'diam_';
+targetShapeStr[1] = ts + 'circ_';
+
+var greyStr = 'GREY';
+
+var obliqueStr = [];
+obliqueStr[0] = ts + 'line_oblique0.png';
+obliqueStr[1] = ts + 'line_oblique1.png';
+
+var targetLineStr = [];
+targetLineStr[0] = ts + 'line_horiz.png';
+targetLineStr[1] = ts + 'line_vert.png';
+
+
+
+var distractStr = [];   // 0 = high-enriched, 1 = high, 2 = low
+if (colBalance == 1) {
+    distractStr[0] = 'BLUE';
+    distractStr[1] = 'GREEN';
+    distractStr[2] = 'ORANGE';
+} else if (colBalance == 2) {
+    distractStr[0] = 'BLUE';
+    distractStr[1] = 'ORANGE';
+    distractStr[2] = 'GREEN';
+} else if (colBalance == 3) {
+    distractStr[0] = 'GREEN';
+    distractStr[1] = 'BLUE';
+    distractStr[2] = 'ORANGE';
+} else if (colBalance == 4) {
+    distractStr[0] = 'GREEN';
+    distractStr[1] = 'ORANGE';
+    distractStr[2] = 'BLUE';
+} else if (colBalance == 5) {
+    distractStr[0] = 'ORANGE';
+    distractStr[1] = 'BLUE';
+    distractStr[2] = 'GREEN';
+} else if (colBalance == 6) {
+    distractStr[0] = 'ORANGE';
+    distractStr[1] = 'GREEN';
+    distractStr[2] = 'BLUE';
+};
+distractStr[3] = 'GREY';
+distractStr[4] = 'YELLOW';
+
+
+var aOrAn = [];
+for (ii = 0; ii < distractStr.length; ii++) {
+    if (distractStr[ii] == 'ORANGE') {aOrAn[ii] = 'an '} else {aOrAn[ii] = 'a '};
+};
+
+var targExFilename1 = ts + 'example_search_task.png';
+
+var colourExImage = [];
+colourExImage[0] = ts + 'ex_' + distractStr[0] + '_0.png';
+colourExImage[1] = ts + 'ex_' + distractStr[1] + '_0.png';
+colourExImage[2] = ts + 'ex_' + distractStr[2] + '_1.png';
+
+var medalDisplayFilename = ts + 'medals/MedalDisplay.png';
+var numMedals = 6;
+var medalImgStr = [];
+for (ii = 0; ii < numMedals; ii++) {
+    medalImgStr[ii] = ts + 'medals/medal' + ii + '.png';
+};
+var fixationStr = ts + 'fixationCross.png';
+
+var winImgStr = ts + 'winnerImg.png';
+var winSoundStr = ts + 'win1_2.mp3';
+
+var searchImageFilenames = [ts + 'circ_blue.png', ts + 'circ_orange.png', ts + 'circ_grey.png',  ts + 'circ_green.png', ts + 'diam_grey.png', fixationStr, winImgStr];
+searchImageFilenames = searchImageFilenames.concat(obliqueStr);
+searchImageFilenames = searchImageFilenames.concat(targetLineStr);
+var allImageFilenames = searchImageFilenames.concat(medalImgStr);
+allImageFilenames = allImageFilenames.concat(medalDisplayFilename);
+allImageFilenames = allImageFilenames.concat(colourExImage);
+
+var audioFilenames = winSoundStr;       // List for preloading; can add others here if they're ever needed
+
+var turkcode = (Math.floor(Math.random() * 899999) + 100000).toString();        // Random code for participant to type in to mTurk when HIT completed
+
+if (realVersion) {
+
+    var numBlocksTotal = 16;
+    var numPracTrials = 8;
+    var initialPauseDuration = 1000;     // 1000
+    var itiDuration = 1000;      // 1000
+    var fixationDuration = 400; // 400
+    var pracFBDuration = [3000, 1000];     // [3000, 1000]
+    var exptFBDuration = 1100;     // 1100
+    var anticipationFBDuration = 2500;     // 2500
+    var timeoutDuration = 2000;     // 2000
+    var zeroPayRT = 1400;       // 1400
+    var anticipationLimit = 150;    // 150
+
+    var choiceFB_duration = 1000;
+    var choiceTest_iti = 500;
+
+    var dTypeRepsPerBlock = 10;
+    var choiceTypeReps = 2;
+
+} else {
+
+    var numBlocksTotal = 2;
+    var numPracTrials = 2;
+    var initialPauseDuration = 1;     // 1000
+    var itiDuration = 1;      // 1000
+    var fixationDuration = 1; // 400
+    var pracFBDuration = [1, 1];     // [3000, 1000]
+    var exptFBDuration = 1;     // 1100
+    var anticipationFBDuration = 1;     // 2500
+    var timeoutDuration = 2000;     // 2000
+    var zeroPayRT = 1400;       // 1400
+    var anticipationLimit = 1;    // 150
+
+    var choiceFB_duration = 1;
+    var choiceTest_iti = 1;
+
+    var dTypeRepsPerBlock = 1;
+    var choiceTypeReps = 1;
+
+}
+
+// ******************* SET TRIAL TYPES ******************
+
+var distractType = [];
+var distractLoc = [];
+var targetLoc = [];
+
+var tempCount = 0;
+for (dt = 0; dt < 4; dt++) {
+    for (ii = 0; ii < dTypeRepsPerBlock; ii++) {
+        distractType[tempCount] = dt;
+        tempCount++;
+    }
+}
+
+var numTrialsPerBlock = distractType.length;
+var trialSelector = [];
+for (ii = 0; ii < numTrialsPerBlock; ii++) {trialSelector[ii] = ii};
+shuffleArray(trialSelector);
+
+var choiceType = [];    // Index 1 is choice type, index 2 is presentation order
+for (ii = 0; ii < choiceTypeReps * 3; ii++) {choiceType[ii] = []};
+
+var tempCount = 0;
+var tempCount2 = 0;
+var tc3 = 0;
+for (dt = 0; dt < 3; dt++) {
+    for (ii = 0; ii < choiceTypeReps; ii++) {
+        choiceType[tempCount2][0] = tempCount;
+        choiceType[tempCount2][1] = tc3;
+        tempCount2++;
+        if (tc3==0) {tc3=1} else if (tc3==1) {tc3=0};      // This alternates to give the presentation order
+    }
+    tempCount++;
+    tc3 = 0;
+}
+
+var numChoiceTrials = choiceType.length;
+var choiceSelector = [];
+for (ii = 0; ii < numChoiceTrials; ii++) {choiceSelector[ii] = ii};
+shuffleArray(choiceSelector);
+
+if (realVersion == false) {
+    console.log('colBalance ' + colBalance);
+}
+
+// ******************* CREATE AND SET VARIOUS USEFUL VARIABLES ******************
+
+var fbFontSize = 150;
+
+var trialCorrect;
+var pointsInBlock = 0;
+
+var bonusTrialStr = '<p style="color:black; background-color:yellow; font-weight:bold; white-space:pre; font-size:'+fbFontSize+'%;line-height:180%;margin:10px;">   BONUS TRIAL!   </p><p style="white-space:pre;font-size:10%;margin:10px;"> </p>';
+var bonusTrialStrInvisible = '<p style="white-space:pre;font-size:10%;margin:10px;"> </p><p style="color:black; background-color:black; font-weight:bold; white-space:pre; font-size:'+fbFontSize+'%;line-height:180%;margin:10px;">   BONUS TRIAL!   </p>';   // This is entirely black - it will be used for making sure the 'points' feedback text is vertically centred
+
+var errorFbStr = '<b>Error</b><br><br>';
+var timeoutFbStr = '<b>Too slow</b><br><br>0 points';
+var anticipationFbStr = '<p style="font-size:130%;line-height:140%;"><b>Please do not anticipate<br>which response to make</b></p>';
+
+
+var oneMSvalue = 0.05;
+var highRewardMultiplier = 10;
+
+var blockNum = 0;
+var trialNum = 0;
+var trialNumInBlock = 0;
+var totalPoints = 0;
+
+var p_age = '';
+var p_gender = '';
+var p_language = '';
+var p_country = '';
+
+
+// ******************* MAIN TASK TRIALS ******************
+
+var trialShapeType;     // 0 = diamond among circles, 1 = circle among diamonds
+var trialDistractLoc;
+var trialDistractType;
+var trialTargetLoc;
+var trialTargetOrient;
+var trialProbLoc;
+var trialCorrect;
+var trialRT;
+var trialFBduration;
+var trialFeedbackText;
+var trialPoints;
+var trialLineArray = [];
+
+var preload_stimuli = {
+    type: 'preload',
+    auto_preload: false,
+    show_progress_bar: false,
+    images: allImageFilenames,
+    audio: audioFilenames
+};
+
+
+var blockPreload = {
+    type: 'preload',
+    auto_preload: false,
+    show_progress_bar: false,
+    images: searchImageFilenames,
+    audio: audioFilenames
+};
+
+var run_searchDisplay = {
+    type: 'visual-search-flex',
+    set_size: numStimLocs,
+    search_stim_size: [80,80],
+    fixation_size: [30,30],
+    circle_diameter: 280,
+    check_focus_interval: 1200,
+    search_stimuli: function() {
+        var searchArray = [];
+        for (ii=0; ii < numStimLocs; ii++) {
+            searchArray[ii] = distractShapeStr[trialShapeType] + greyStr + '.png';
+        }
+        searchArray[trialDistractLoc] = distractShapeStr[trialShapeType] + distractStr[trialDistractType] + '.png';
+        searchArray[trialTargetLoc] = targetShapeStr[trialShapeType] + greyStr + '.png';
+        return searchArray;
+    },
+    line_stimuli: function() {
+        var lineStrArray = [];
+        for (ii=0; ii < numStimLocs; ii++) {
+            lineStrArray[ii] = obliqueStr[trialLineArray[ii]];
+        }
+        lineStrArray[trialTargetLoc] = targetLineStr[trialTargetOrient];
+        return lineStrArray;
+    },
+    target_type: function() {
+        return trialTargetOrient;
+    },
+    trial_duration: timeoutDuration,
+    fixation_duration: fixationDuration,
+    fixation_image: fixationStr,
+    on_finish: function(data){
+
+        trialCorrect = data.correct;
+        trialRT = data.rt;
+
+        trialPoints = 0;
+        trialFeedbackText = "<p style='font-size:"+fbFontSize+"%;margin:10px;'>";
+
+        if (exptPhase == 0) {
+            trialFBduration = pracFBDuration[0];
+            if (trialCorrect == 99) {
+                trialFeedbackText += timeoutFbStr;
+            } else if (trialCorrect == 0) {
+                trialFeedbackText += '<b>Error</b><br><br>If the line inside the odd-shape-out is horizontal, press C<br><br>If the line is vertical, press M';
+            } else if (trialCorrect == 1) {
+                trialFeedbackText += 'Correct';
+                trialFBduration = pracFBDuration[1];
+            };
+        } else {
+
+            trialFBduration = exptFBDuration;
+
+            if (trialCorrect == 99) {
+                trialFeedbackText += timeoutFbStr;
+            } else {
+
+                if (trialRT < anticipationLimit) {
+                    trialCorrect = 98;
+                    trialFeedbackText = anticipationFbStr;
+                    trialFBduration = anticipationFBDuration;
+                } else {
+                    if (trialRT < zeroPayRT) {
+                        trialPoints = oneMSvalue * (zeroPayRT - data.rt);
+                        if (trialDistractType < 2) {trialPoints = trialPoints * highRewardMultiplier};
+                        trialPoints = Math.round(trialPoints);
+
+                        if (trialCorrect == 1) {
+                            trialFeedbackText += '+' + trialPoints + ' points';
+                        } else if (trialCorrect == 0) {
+                            trialFeedbackText += errorFbStr + 'LOSE ' + trialPoints + ' points';
+                            trialPoints = -trialPoints;
+                        }
+
+                    } else {     // If RT greater than zero-pay threshold
+                        if (trialCorrect == 1) {
+                            trialFeedbackText += timeoutFbStr;
+                        } else if (trialCorrect == 0) {
+                            trialFeedbackText += errorFbStr + timeoutFbStr;
+                        }
+                    }
+
+                }   // anticipation
+            }   // timeout
+        };  // exptPhase
+
+        trialFeedbackText += '</p>';
+        totalPoints += trialPoints;
+        pointsInBlock += trialPoints;
+
+
+        var tempStrArray = '';
+        for (ii=0; ii < numStimLocs; ii++) {
+            tempStrArray += trialLineArray[ii] + ';';
+        }
+
+
+        jsPsych.data.addDataToLastTrial({
+            exptPhase: exptPhase,
+            blockNum: blockNum,
+            trialNum: trialNum,
+            trialNumInBlock: trialNumInBlock,
+            trialDistractType: trialDistractType,
+            trialDistractLoc: trialDistractLoc,
+            trialTargetLoc: trialTargetLoc,
+            // trialShapeType: trialShapeType,
+            trialTargetOrient: trialTargetOrient,
+            trialCorrect: trialCorrect,
+            trialPoints: trialPoints,
+            totalPoints: totalPoints,
+            trialLineArray: tempStrArray
+        });
+
+    }
+}
+
+var winImg = '<img src="' + winImgStr + '" style="margin:0px;>';
+
+var run_searchFeedback = {
+    type: 'audio-keyboard-response-mlp',
+    stimulus: function() {
+        var tempSndStr = null;
+        if (trialDistractType == 0 && trialCorrect == 1) {
+            tempSndStr = winSoundStr;
+        }
+
+        return tempSndStr;
+    },
+    prompt: function() {
+        var tempFbStr = bonusTrialStr + trialFeedbackText + bonusTrialStrInvisible;      // Putting the invisible version after should mean points info is centred vertically
+        if (trialDistractType == 0 && trialCorrect == 1) {
+            tempFbStr = '<img style="visibility:hidden" src="' + winImgStr + '">' + tempFbStr +'<img src="' + winImgStr + '">';     // Putting the invisible image before should mean points info is centred vertically
+        } else if (trialDistractType < 2 && trialCorrect != 98) {
+           tempFbStr = tempFbStr;
+        } else {
+           tempFbStr = trialFeedbackText;
+        };
+        return tempFbStr;
+    },
+    trial_duration: function() {return trialFBduration},
+    response_ends_trial: false,
+    post_trial_gap: itiDuration
+}
+
+var run_search_trial = {
+    on_timeline_start: function() {
+        trialShapeType = 0;
+        if (exptPhase == 0) {
+            trialDistractType = 4;
+        } else {
+            trialDistractType = distractType[trialSelector[trialNumInBlock]];
+        };
+        trialTargetLoc = Math.floor(Math.random() * numStimLocs);
+        do {
+            trialDistractLoc = Math.floor(Math.random() * numStimLocs);
+        } while (trialDistractLoc == trialTargetLoc)
+
+        for (ii=0; ii < numStimLocs; ii++) {
+            trialLineArray[ii] = Math.round(Math.random());
+        }
+        trialTargetOrient = Math.round(Math.random());
+    },
+    timeline: [run_searchDisplay, run_searchFeedback]
+}
+
+var pointsPerMedal = Math.floor(goodBlockScore * numBlocksTotal / (6*100)) * 100;  // Divided by 6 as Elite is level 6, and rounded down to nearest 100
+if (realVersion == false) {console.log('ppm ' + pointsPerMedal)};
+
+var currentMedalLevel = 0;
+var previousMedalLevel = 0;
+
+var blockBreakScreen1 = {
+    type: "html-keyboard-response-mlp",
+    stimulus: function() {
+        previousMedalLevel = currentMedalLevel;
+        currentMedalLevel = Math.floor(totalPoints/pointsPerMedal);
+        if (currentMedalLevel > numMedals) {currentMedalLevel = numMedals};
+        var nextMedalPoints = (currentMedalLevel + 1) * pointsPerMedal;
+
+        var newMedal = false;
+        if (previousMedalLevel != currentMedalLevel) {newMedal = true};
+
+        var tempTextHTML = "<p style='white-space:pre;'>You\'re doing well!   " + (blockNum + 1) +" of " + numBlocksTotal + " blocks completed.</p>";
+        tempTextHTML += "<p>In the previous block of trials, you won " + numberWithCommas(pointsInBlock) + " points.</p><p style='font-size:130%;'><b>You currently have a total of " + numberWithCommas(totalPoints) + " points</b><br><br></p>";
+
+        if (newMedal) {tempTextHTML += "<p style='color:yellow; font-size:115%'>You\'ve unlocked a new medal!</p>"};
+
+        tempTextHTML += '<p>'
+        for (ii = 0; ii < currentMedalLevel; ii++) {
+            if (ii == currentMedalLevel-1) {
+                tempTextHTML += '<img src="' + medalImgStr[ii] + '">'
+            } else {
+                tempTextHTML += '<img src="' + medalImgStr[ii] + '" style="opacity:0.4">'
+            };
+        };
+        tempTextHTML += '<br><br></p>';
+        if (currentMedalLevel != numMedals) {
+            tempTextHTML += '<p style="color:cyan; font-size:115%;">Next medal unlocks at ' + numberWithCommas(nextMedalPoints) + ' points<br><br></p>';
+        };
+        tempTextHTML += "<p>Press space when you are ready to continue</p>"
+        pointsInBlock = 0;
+        return tempTextHTML;
+    },
+    choices: [' '],
+    check_focus_interval: 1500,
+    post_trial_gap: 0,
+    on_finish: function() {
+        jsPsych.data.addDataToLastTrial({
+            currentMedal: currentMedalLevel
+        });
+        if (jatosVersion == true) {
+            // var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).json();
+            var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).csv();
+            jatos.submitResultData(result_for_JATOS);
+        };
+    }
+};
+
+
+var blockBreakScreen2 = {
+    type: "html-keyboard-response-mlp",
+    stimulus: "<p style='font-size:130%; line-height:140%'><b>REMEMBER: THE MORE POINTS YOU HAVE AT THE END OF<br>THIS TASK, THE MORE LIKELY YOU ARE TO RECEIVE<br>" + prizeStrShort.toUpperCase() + "</b></p><p><br>Please place your fingers on the C and M keys and<br>press any key when you are ready to continue</p>",
+    post_trial_gap: initialPauseDuration
+};
+
+
+// ******************* MAIN LOOPS ******************
+
+var run_practice_phase = {
+    timeline: [run_search_trial],
+    loop_function: function() {
+        trialNum++;
+        trialNumInBlock++;
+        if (trialNumInBlock < numPracTrials) {
+            return true;
+        } else {
+            trialNum = 0;
+            trialNumInBlock = 0;
+            return false;
+        };
+    }
+};
+
+
+var main_task_trial_block = {
+    timeline: [run_search_trial],
+    loop_function: function() {
+        trialNum++;
+        trialNumInBlock++;
+        if (trialNumInBlock < numTrialsPerBlock) {
+            return true;
+        } else {
+            trialNumInBlock = 0;
+            return false;
+        };
+    }
+};
+
+
+var checkBlockBreak2 = {     // No block break screen 2 after final block
+    timeline: [blockBreakScreen2],
+    conditional_function: function(){
+        if (blockNum == numBlocksTotal - 1) {
+            return false;
+        } else {
+            return true;
+        };
+    }
+};
+
+
+var run_main_task = {
+    timeline: [main_task_trial_block, blockBreakScreen1, checkBlockBreak2, blockPreload],
+    on_timeline_start: function() {exptPhase = 1; trialNumInBlock = 0;},
+    loop_function: function() {
+        blockNum++;
+        shuffleArray(trialSelector);
+        if (blockNum < numBlocksTotal) {
+            return true;
+        } else {
+            return false;
+        };
+    }
+};
+
+
+// ******************* POST-EXPT QUESTIONS ******************
+
+
+var tempImg1;
+var tempImg2;
+
+var choiceStim = [];
+for (ii=0; ii<3; ii++) {choiceStim[ii]=[]};
+
+choiceStim[0][0] = distractShapeStr[0] + distractStr[0] + '.png';
+choiceStim[0][1] = distractShapeStr[0] + distractStr[1] + '.png';
+choiceStim[1][0] = distractShapeStr[0] + distractStr[0] + '.png';
+choiceStim[1][1] = distractShapeStr[0] + distractStr[2] + '.png';
+choiceStim[2][0] = distractShapeStr[0] + distractStr[1] + '.png';
+choiceStim[2][1] = distractShapeStr[0] + distractStr[2] + '.png';
+
+chImgSz = 'width="80%" height="80%"';
+chBtnSz = '200px';
+
+var choiceTestDisplay = {
+    type: "html-button-response",
+    stimulus: '<p style="font-size:130%; text-align:center">Please select the colour that you think would allow you<br>to earn more points for a fast, correct response<br>in the search task.<br><br></p>',
+    choices: function() {
+        if (trialChoiceOrder == 0) {
+            tempImg1 = choiceStim[trialChoiceType][0];
+            tempImg2 = choiceStim[trialChoiceType][1];
+        } else {
+            tempImg1 = choiceStim[trialChoiceType][1];
+            tempImg2 = choiceStim[trialChoiceType][0];
+        }
+        return ['<img '+chImgSz+' src="' + tempImg1 + '">', '<img '+chImgSz+' src="' + tempImg2 + '">'];
+    },
+    button_html: '<button class="choiceTestButton"><span>%choice%</span></button>',
+    prompt: '<p><br>Please click on the item that you would like to select</p>',
+    margin_horizontal: '30px',
+    post_trial_gap: 100,
+    on_finish: function(data) {
+        trialPoints = 1000;
+        if (data.button_pressed == trialChoiceOrder) {
+            var chosenOption = 1;
+        } else {
+            var chosenOption = 2;
+            if (trialChoiceType > 0) {trialPoints = 100};
+        };
+
+        totalPoints += trialPoints;
+
+        jsPsych.data.addDataToLastTrial({
+            exptPhase: exptPhase,
+            trialNum: trialNum,
+            trialNumInBlock: trialNumInBlock,
+            trialChoiceType: trialChoiceType,
+            trialChoiceOrder: trialChoiceOrder,
+            trialPoints: trialPoints,
+            totalPoints: totalPoints,
+            chosenOption: chosenOption
+        });
+    }
+};
+
+var choiceTestFB = {
+    type: "html-keyboard-response-mlp",
+    stimulus: '<p style="font-size:180%;line-height:140%; text-align:center">We have added the points earned<br>from this choice to your total<br><br></p>',
+    trial_duration: choiceFB_duration,
+    response_ends_trial: false,
+    post_trial_gap: choiceTest_iti
+};
+
+var run_choiceTrials = {
+    timeline: [choiceTestDisplay, choiceTestFB],
+    on_timeline_start: function() {
+        trialChoiceType = choiceType[choiceSelector[trialNum]][0];
+        trialChoiceOrder = choiceType[choiceSelector[trialNum]][1];
+    }
+};
+
+var run_choiceLoop = {
+    timeline: [run_choiceTrials],
+    loop_function: function() {
+        trialNum++;
+        trialNumInBlock++;
+        if (trialNumInBlock < numChoiceTrials) {
+            return true;
+        } else {
+            trialNum = 0;
+            trialNumInBlock = 0;
+            return false;
+        };
+    }
+};
+
+var run_choiceTest = {
+    timeline: [run_choiceLoop],
+    on_timeline_start: function() {exptPhase = 2; trialNum = 0; trialNumInBlock = 0;},
+};
+
+
+var numValueEstimationTrials = 3;
+var valueEstimateSelector = [];
+for (ii = 0; ii < numValueEstimationTrials; ii++) {valueEstimateSelector[ii] = ii};
+shuffleArray(valueEstimateSelector);
+
+
+var valueEstimationTestDisplay = {
+    type: "survey-text-mlp",
+    preamble: function() {
+        return '<p style="text-align:left;font-size:120%">Now you will be asked to estimate how many points (on average) you earned for a correct response during the search task.<br><br>During the search task many points did you win (on average) for responding correctly when the display contained '+aOrAn[valueEstimateSelector[trialNum]]+' '+ distractStr[valueEstimateSelector[trialNum]]+' circle?</p><p style="text-align:center;font-size:100%"><img width="20%" height="20%" src="' + distractShapeStr[0] + distractStr[valueEstimateSelector[trialNum]] + '.png' + '"><br><br>Please type a number into the box below to enter your estimate, then click Continue</p>'
+    },
+    questions: [{prompt: "<b>On average, I won:</b>", postscript: '<b>points</b><br><br>', fontsize: '150%', rows: 1, columns: 6, required: true}],
+    option_layout: 'horizontal',
+    post_trial_gap: 100,
+    numeric_only: true,
+    max_number: 9999,
+    on_finish: function(data) {
+        var valEst = data.responses.replace('Q0','');
+        valEst = valEst.replace(/[^\d.-]/g, '');
+        var valEst = parseFloat(valEst);
+        jsPsych.data.addDataToLastTrial({
+            exptPhase: exptPhase,
+            trialNum: trialNum,
+            trialNumInBlock: trialNumInBlock,
+            trialChoiceType: valueEstimateSelector[trialNum],
+            valEst: valEst
+        });
+    }
+};
+
+var run_valueEstimationTrials = {
+    timeline: [valueEstimationTestDisplay],
+    loop_function: function() {
+        trialNum++;
+        trialNumInBlock++;
+        if (trialNumInBlock < numValueEstimationTrials) {
+            return true;
+        } else {
+            trialNum = 0;
+            trialNumInBlock = 0;
+            return false;
+        };
+    }
+};
+
+var run_valueEstimationTest = {
+    timeline: [run_valueEstimationTrials],
+    on_timeline_start: function() {exptPhase = 3; trialNum = 0; trialNumInBlock = 0;},
+};
+
+var expt_finished_questions = {
+    type: "survey-text-mlp",
+    preamble: '<p style="font-size:130%">Please type answers to the following questions in the boxes below.</p>',
+    questions: [{prompt: "Were you distracted while you completed the task? e.g., by using your phone etc.", rows: 5, columns: 80}, {prompt: "Do you have any general comments about the experiment?", rows: 5, columns: 80}],
+    post_trial_gap: 100,
+    on_finish: function(data) {
+        exptPhase = 4;
+        var today = new Date();
+        var endTime = today.getFullYear()+'-'+pad((today.getMonth()+1),2)+'-'+pad(today.getDate(),2)+'_'+pad(today.getHours(),2) + ":" + pad(today.getMinutes(),2) + ":" + pad(today.getSeconds(),2);
+        jsPsych.data.addDataToLastTrial({
+            exptPhase: exptPhase,
+            endTime: endTime
+        });
+        if (jatosVersion == true) {
+            // var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).json();
+            var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).csv();
+            jatos.submitResultData(result_for_JATOS);
+        } else {
+            jsPsych.data.get().ignore(fieldsToIgnore).localSave('csv','mydata.csv');
+        };
+    }
+};
+
+
+// ******************* INSTRUCTIONS ******************
+// ***************************************************
+// ***************************************************
+// ******************* INSTRUCTIONS SET 0 ******************
+
+var target_example = '<p style="text-align:center"><br><img src="' + targExFilename1 + '" style = "width:65%;height:65%;"><br></p>';
+var colour_example_html = '<p><div class="row"><div class="column"><img src="' + colourExImage[0] + '" style="width:100%"></div><div class="column"><img src="' + colourExImage[1] + '" style="width:100%"></div><div class="column"><img src="' + colourExImage[2] + '" style="width:100%"></div></div></p>'
+
+var instructStr = [];
+var Q_prompt = [];
+var Q_answer = [];
+var correctString = [];
+
+var numQs = [];
+var maxQs = 4;
+
+for (ii = 0; ii < maxQs; ii++) {
+    Q_prompt[ii] = [];
+    Q_answer[ii] = [];
+};
+
+instructStr[0] = [
+    '<p style="text-align:left">Thanks for agreeing to take part in this study, in which you will be asked to complete a <b>target detection</b> task.<br><br>Each trial will start with a cross appearing &ndash; this tells you that the trial is about to begin. A set of shapes will then appear, containing a single diamond in a set of circles. The diamond shape is called the <b>target</b>. An example is shown below:<br></p>' + target_example,
+    '<p style="text-align:left">Each of the shapes will contain a line, and your task is to respond to the line that is contained in the diamond target.<br><br><b>If the line inside the diamond is HORIZONTAL, you should press the C key.<br>If the line is VERTICAL, you should press the M key.</b><br>You should respond as quickly as you can, but try to avoid making errors.<br></p>' + target_example,
+    '<p style="text-align:left">On most of the trials, one of the circles in the display will be coloured.<br><br>Note, however, that <b>the diamond target will never be coloured. So the best strategy in this task is to ignore coloured shapes altogether, and respond to the diamond as quickly as possible.</b></p>' + target_example
+];
+
+numQs[0] = 3;
+
+Q_prompt[0][0] = '<b>What is the TARGET on each trial of this task?</b>';
+Q_answer[0][0] = [" The item that is a different colour from all the others.", " The diamond shape."];
+
+Q_prompt[0][1] = '<b>What is your aim in this task?</b>';
+Q_answer[0][1] = [" To respond based on the orientation of the line inside the target shape.", " To respond based on the length of the line inside the target shape.", " To rate how attractive different shapes are."];
+
+Q_prompt[0][2] = '<b>Which of these options is correct?</b>';
+Q_answer[0][2] = [" If the line in the target is horizontal I should press M; if the line is vertical I should press C.", " If the line in the target is horizontal I should press C; if the line is vertical I should press M."];
+
+correctString[0] = '{"Q0":"' + Q_answer[0][0][1] + '","Q1":"' + Q_answer[0][1][0] + '","Q2":"' + Q_answer[0][2][1] + '"}';
+
+// ******************* INSTRUCTIONS SET 1 ******************
+
+instructStr[1] = [
+    '<p style="text-align:left;">The rest of this task is similar to the trials you have just completed. On each trial, you should respond to the line that is contained inside the diamond.<br><br>If the line is HORIZONTAL, you should press the C key.<br>If the line is VERTICAL, you should press the M key.</p><br>',
+    '<p style="text-align:left;">From now on, you will be able to earn points for correct responses. For every ' + numberWithCommas(pointsPerMedal) + ' points you gain, you will unlock a medal.<br><br>Only around 10% of participants will unlock the ELITE medal - can you?<br><br></p>' + '<p style="text-align:center"><img src="' + medalDisplayFilename + '"><br></p>',
+    '<p style="text-align:left;">Your aim should be to win as many points as possible. Not only do points unlock medals, but (perhaps more importantly) <b>the 25% of participants who earn the most points will each win ' + prizeStr +'</b>.<br><br>So if you are among the top-scoring 25% of participants, you will win a prize!</p><br>',
+    '<p style="text-align:left;">The faster you make a correct response on each trial, the more points you will earn. But if you make an error, you will LOSE the corresponding amount. So you should try to respond as quickly and accurately as possible.</p><p style="text-align:left;font-size:110%;"><b>IMPORTANT: Some of the trials will be BONUS trials! The number of points available on bonus trials is much higher than on standard (non-bonus) trials.</p><p style="text-align:left;font-size:110%;">So you will earn much more for correct responses on bonus trials than on standard trials.</b></p><br>'
+];
+
+numQs[1] = 3;
+
+Q_prompt[1][0] = '<b>How do you earn points in this task?</b>';
+Q_answer[1][0] = [" I will receive 10 points every time I make a correct response to the line inside the target.", " The faster I make a correct response to the line inside the target, the more points I will earn.", " I will not earn points during this part of the experiment."];
+
+Q_prompt[1][1] = '<b>Which of the following is true?</b>';
+Q_answer[1][1] = [" I will win the same number of points on every trial.", " Some trials will be 'bonus trials', on which I can win more points than on standard trials.", " I will win points even for incorrect responses."];
+
+Q_prompt[1][2] = '<b>What determines whether you will receive a prize of ' + prizeStr + '?</b>';
+Q_answer[1][2] = [" I will receive a prize if the points that I earn during the experiment put me in the top-scoring 25% of participants.", " I will receive a prize if I make more correct responses than the average participant.", " I will receive a prize if I unlock the Elite medal"];
+
+correctString[1] = '{"Q0":"' + Q_answer[1][0][1] + '","Q1":"' + Q_answer[1][1][1] + '","Q2":"' + Q_answer[1][2][0] + '"}';
+
+
+// ******************* INSTRUCTIONS SET 2 ******************
+
+instructStr[2] = [
+    '<p style="text-align:left;line-height:280%">On some of the trials, one of the circles in the display will be coloured.<br><b>If ' + aOrAn[0] + distractStr[0] +' circle is in the display, the trial WILL be a BONUS trial.<br>If ' + aOrAn[1] + distractStr[1] +' circle is in the display, the trial WILL be a BONUS trial.<br>If ' + aOrAn[1] + distractStr[2] +' circle is in the display, the trial will NOT be a bonus trial.</b></p>' + colour_example_html,
+    '<p style="text-align:left;">Note, however, that you should always respond to the DIAMOND.<br><br><b>The diamond will never be coloured. So the best strategy in this task (that will earn the most points) is to ignore the coloured shapes altogether, and respond to the diamond as quickly as possible.</b></p>'
+];
+
+numQs[2] = 3;
+
+Q_prompt[2][0] = '<b>What type of trial will it be if the display contains ' + aOrAn[0] + distractStr[1] + ' shape?</b>';
+Q_answer[2][0] = [" BONUS trial", " No bonus trial"];
+
+Q_prompt[2][1] = '<b>What type of trial will it be if the display contains ' + aOrAn[1]  + distractStr[2] + ' shape?</b>';
+Q_answer[2][1] = [" BONUS trial", " No bonus trial"];
+
+Q_prompt[2][2] = '<b>What type of trial will it be if the display contains ' + aOrAn[1]  + distractStr[0] + ' shape?</b>';
+Q_answer[2][2] = [" BONUS trial", " No bonus trial"];
+
+correctString[2] = '{"Q0":"' + Q_answer[2][0][0] + '","Q1":"' + Q_answer[2][1][1] + '","Q2":"' + Q_answer[2][2][0] + '"}';
+
+
+// ******************* CHOICE INSTRUCTIONS SET 3 ******************
+
+instructStr[3] = [
+    '<p style="text-align:left;">During the previous task (which we call the SEARCH TASK), the number of points that you could win on each trial was determined by the colour of the coloured circle in the display. When certain colours appeared, you could potentially win more points than when other colours appeared.<br><br>In the next phase we will test what you have learned about the different colours of circles.</p><br>',
+    '<p style="text-align:left;">You will be shown two displays containing different colours, and will be asked to choose which one you would prefer to have for the next trial of the search task. We will then add to your total the number of points that you would have earned on that trial for a rapid, correct response.</p><br>',
+    '<p style="text-align:left;">When you are choosing which colour you would prefer, you should always pick the colour that would allow you to win more points, since that will improve your chances of winning a prize. So, based on your previous experience, please choose the colour that you think will earn you more points.</p><br>'
+];
+
+numQs[3] = 2;
+
+Q_prompt[3][0] = '<b>What should you do on each trial of the next phase?</b>';
+Q_answer[3][0] = [" Choose the colour of circle randomly", " Choose the colour of circle that would allow you to win more points in the search task", " Choose the colour of circle that is brightest"];
+
+Q_prompt[3][1] = '<b>What will happen after you make your choice?</b>';
+Q_answer[3][1] = [" I will earn the number of points that I would have received in the search task for a fast, correct response when a circle of the chosen colour was in the display", " I will earn no points", " I will lose the number of points that I would have received in the search task for making an error"];
+
+correctString[3] = '{"Q0":"' + Q_answer[3][0][1] + '","Q1":"' + Q_answer[3][1][0] + '"}';
+
+
+// ******************* SET UP INSTRUCTION LOOPS ******************
+
+var show_instructions = {
+    type: "instructions",
+    pages: function() {
+        return instructStr[instSet];
+    },
+    show_clickable_nav: true,
+    post_trial_gap: 0
+};
+
+
+var instructions_repeat = true;
+
+var instructions_check = {
+    type: "survey-multi-choice-mlp",
+    preamble: ["<p style='text-align:center;'>Check your knowledge before you continue!</p>"],
+    questions: function() {
+        var qItems = [];
+        for (ii = 0; ii < numQs[instSet]; ii++) {
+            qItems[ii] = {prompt: Q_prompt[instSet][ii], options: Q_answer[instSet][ii], required: true};
+        }
+        return qItems;
+    },
+    post_trial_gap: 0,
+    on_finish: function(data) {
+        if (data.responses == correctString[instSet]) {
+            instructions_repeat = false;
+        };
+        jsPsych.data.addDataToLastTrial({
+            instSet: instSet,
+            instruct_qs: 1
+        });
+    }
+};
+
+var instructions_check_failed_display = {
+    type: "html-button-response",
+    stimulus: '<p><b>Unfortunately, at least one of your answers was incorrect.</b></p>',
+    choices: ['<p>Click here to read the instructions again</p>'],
+    button_html: '<button class="fancyButtonRed" style="vertical-align:middle"><span>%choice%</span></button><br><br>',
+    post_trial_gap: 100
+};
+
+
+var instructions_check_failed_conditional = {
+    timeline: [instructions_check_failed_display],
+    conditional_function: function() {return instructions_repeat}      // If this is true, it will execute timeline (show failure screen)
+};
+
+
+var ready_to_continue = {
+    type: "html-keyboard-response-mlp",
+    stimulus: function() {
+        var successStr = '';
+        if (instSet == 0) {
+            successStr = "<p><b>Well done &ndash; all your answers were correct!</b></p><p>You\'ll now have a chance to practice the task.</p><p style='font-size:90%;'><br>Please place your fingers on the C and M keys<br>and press any key to begin</p>";
+        } else if (instSet == 1 || instSet == 2) {
+            successStr = "<p style='font-size:130%;'>You\'re now ready to start the main experiment. Good luck! </p><p style='font-size:90%;'><br>Please place your fingers on the C and M keys<br>and press any key to begin</p>";
+        } else if (instSet == 3) {
+            successStr = "<p><b>Well done &ndash; your answers were correct!</b></p><p>You\'re now ready to start making choices. Good luck! </p><p style='font-size:90%;'><br>Please press any key to begin</p>";
+        };
+        return successStr;
+    }
+};
+
+
+var loop_instructions = {
+    timeline: [show_instructions, instructions_check, instructions_check_failed_conditional],
+    loop_function: function() {return instructions_repeat}  // If instructions_repeat remains true, this will keep looping; if it becomes false, it will move on.
+};
+
+
+var query_supermarket = true;
+var get_email_for_prize = {
+    type: "survey-text-mlp",
+    preamble: '<p style="text-align:left;font-size:120%">Well done &ndash; all your answers were correct!<br><br><b>If you would like to be eligible to win ' + prizeStrShort + ', please enter your email below. If you win a prize we will send it to this address.</b></p><p style="text-align:left;font-size:100%">If you provide an email address it will not be passed to any third parties. Once the prizes have been awarded, we will delete your address from our records.<br><br>If you do not want to provide an email address then please leave the box blank. However if you do not provide an email, you will not be eligible to win a prize.</p>',
+    questions: [{prompt: "<b>Email:</b>", placeholder: 'Enter email here', rows: 1, columns: 35}],
+    option_layout: 'horizontal',
+    post_trial_gap: 0,
+    on_finish: function(data) {
+        if (data.responses == '{"Q0":""}') {query_supermarket = false};
+    }
+};
+var select_supermarket = {
+    type: "survey-multi-choice-mlp",
+    preamble: '<p style="text-align:left;font-size:120%"><b>If you win a prize, which chain would you like the voucher to be for?</b></p>',
+    questions: [{prompt: '', options: [' Coles',' Woolworths'], required: true}],
+    post_trial_gap: 0
+};
+
+var conditional_supermarket = {
+    timeline: [select_supermarket],
+    conditional_function: function() {return query_supermarket}
+};
+
+var get_prize_info = {timeline: [get_email_for_prize, conditional_supermarket, ready_to_continue]};
+
+var practice_instructions = {
+    on_timeline_start: function() {instSet = 0; instructions_repeat = true;},
+    timeline: [loop_instructions, ready_to_continue]
+};
+var main_instructions1 = {
+    on_timeline_start: function() {instSet = 1; instructions_repeat = true;},
+    timeline: [loop_instructions]
+};
+var main_instructions2 = {
+    on_timeline_start: function() {instSet = 2; instructions_repeat = true;},
+    timeline: [loop_instructions]
+};
+var choice_instructions = {
+    on_timeline_start: function() {instSet = 3; instructions_repeat = true;},
+    timeline: [loop_instructions, ready_to_continue]
+};
+
+
+// ******************* CONSENT, DEMOGRAPHICS AND DEBRIEF ******************
+
+var studyName = 'Searching for shapes and earning rewards';
+
+var piscf_info = {};
+
+piscf_info.task = {};
+piscf_info.task.time = '1 hour';
+piscf_info.task.credit = '1';
+
+piscf_info.ethics = {};
+piscf_info.ethics.approval = '3467';
+piscf_info.ethics.name = studyName;
+
+var mWidth = '10px 0px';
+
+var piscf = {
+    type: "html-button-response",
+    stimulus:function() {
+        document.getElementById("jspsychTargetMLP").style.position = "static";
+        document.getElementById("jspsychTargetMLP").style.height = "100%";
+        document.getElementById("jspsychTargetMLP").style.width = "100%";
+        document.getElementById("jspsychTargetMLP").style.top = "0%";
+        document.getElementById("jspsychTargetMLP").style.left = "0%";
+        document.getElementById("jspsychTargetMLP").style.margin = "0";
+
+        if (realVersion == false) {console.log('pID: ' + sona_id)};
+
+        var sf = '90%';
+        var lh = '150%';
+
+        var htmlStr = '<p style="text-align:center;"><b>UNSW SYDNEY SCHOOL OF PSYCHOLOGY<br>' +
+        'PARTICIPANT INFORMATION STATEMENT AND CONSENT FORM</b><br>' + piscf_info.ethics.name + '<br></p><p>Please read over the information below and click the button at the bottom of the page if you consent to participate in the study.</p>';
+
+        htmlStr += '<ol style="text-align:left;line-height:190%;margin:'+mWidth+';font-size:'+sf+';line-height:'+lh+';">' +
+        '<li> <p><b>What is the research study about?</b><br>You are invited to take part in this research study. The research study aims to investigate the processes of visual attention, by asking you to search for shapes as quickly and accurately as possible. You have been invited because you registered to participate in this study via SONA, and your contact details were obtained from SONA.</p></li>' +
+        '<li> <p><b>Who is conducting this research?</b><br>The study is being carried out by the following researchers: Professor Mike Le Pelley, Dr Daniel Pearson, and Ms Meihui Piao, School of Psychology, UNSW Sydney. <b><i>Research Funder:</b></i> This research is being funded by the Australian Research Council.</p></li>' +
+        '<li> <p><b>Inclusion/Exclusion Criteria</b><br>Before you decide to participate in this research study, you should meet the following criterion: <b><i>Normal colour vision</b></i></p></li>' +
+        '<li> <p><b>Do I have to take part in this research study?</b><br>Participation in this research study is voluntary. If you do not want to take part, you do not have to. If you decide to take part and later change your mind, you are free to withdraw from the study at any stage (See Item 11).</p></li>' +
+        '<li> <p><b>What does participation in this research require, and are there any risks involved?</b><br>If you decide to take part in the research study, we will ask you to complete a search task, in which you will be asked to search for and respond to shapes. You will earn be able to earn points for making correct responses. We don’t expect this research to cause any harm. However, you may skip any or all written or verbal questions if you wish. Please let the researchers know if you need any assistance for any reason.</p></li>' +
+        '<li> <p><b>Total participation time</b><br>In total, participation in this study will require ' + piscf_info.task.time + '.</p></li>' +
+        '<li> <p><b>Recompense to participants</b><br>You will receive ' + piscf_info.task.credit + ' SONA credit as recompense for your participation. In addition, you will be able to earn points during the study, and the 25% of participants who earn the most points will receive a bonus of ' + prizeStr +'.<br></li>' +
+        '<li> <p><b>What are the possible benefits to participation?</b><br>We cannot promise that you will receive any benefits from this study, but we hope to use the findings from this study to better understand the relationship between memory and attention.</p></li>' +
+        '<li> <p><b>What will happen to information about me?</b><br>The information that you give us will be kept for 10 years after the project\'s completion. We will store information about you in a non-identifiable format at UNSW (Kensington Campus).<br>Researchers at UNSW are requested to store their aggregated research data in the UNSW data repository, this is a system called ResData. Once the aggregated data are deposited into this repository, they will be retained in this system permanently, but in a format where your data will not be individually identifiable.<br>Your non-identifiable information will be used in publications and reports based on this research study. Information collected for this research project may be made available to other research projects in de-identified form only.</p></li>' +
+        '<li> <p><b>How and when will I find out what the results of the research study are?</b><br>The research team intend to publish and/ report the results of the research study in a variety of ways. All information published will be done in a way that will not identify you. If you would like to receive a copy of the results you can let the research team know by emailing Prof Mike Le Pelley: m.lepelley@unsw.edu.au. We will only use these details to send you the results of the research.</p></li>' +
+        '<li> <p><b>What if I want to withdraw from the research study?</b><br>If you do consent to participate, you may withdraw at any time. You do not have to give any reason for withdrawing. However, please let the researcher know by email. Your decision not to participate or to withdraw from the study will not affect your relationship with UNSW Sydney. If you decide to withdraw from the research study, the researchers will not collect additional information from you. Any identifiable information about you will be withdrawn from the research project.</p></li>' +
+        '<li> <b>What should I do if I have further questions about my involvement in the research study?</b><br>If you require further information regarding this study or if you have any problems that may be related to your involvement in the study, you can contact the following member/s of the research team:<p class="conDets"><b><i>Research Team Contact Details</b></i><br><b>Chief Investigator:</b> Prof Mike Le Pelley<br><b>Position:</b> Professor<br><b>Telephone:</b> +61 2 9065 1458<br><b>Email:</b> m.lepelley@unsw.edu.au</p><p class="conDets"><b>Partner Investigator:</b> Dr Daniel Pearson<br><b>Position:</b> Research Associate<br><b>Email:</b> d.pearson@unsw.edu.au</p><p class="conDets"><b>Research Student:</b> Ms Meihui Piao<br><b>Position:</b> Honours student<br><b>Email:</b> m.piao@student.unsw.edu.au</p></li>' +
+        '<li> <b>What if I have a complaint or any concerns about the research study?</b><br>If you have a complaint regarding any aspect of the study or the way it is being conducted, please contact the UNSW Human Ethics Coordinator:<p class="conDets"><b><i>Complaints Contact</b></i><br><b>Position:</b> UNSW Human Research Ethics Coordinator<br><b>Telephone:</b> +61 2 9385 6222<br><b>Email:</b> humanethics@unsw.edu.au<br><b>HC Reference Number:</b> '+piscf_info.ethics.approval+'</span></p></li>' +
+        '</ol>';
+
+        return htmlStr;
+    },
+    choices: ['<p style="font-size:130%;line-height:0%;"><b>Please click here when you have read the above information</b></p>'],
+    button_html: '<button style="vertical-align:middle;line-height:150%"><span>%choice%</span></button><br><br>'
+};
+
+var consentDenied = true;
+
+var consent_form = {
+    type: "html-button-response",
+    stimulus: function() {
+        document.getElementById("jspsychTargetMLP").style.position = "static";
+        document.getElementById("jspsychTargetMLP").style.height = "100%";
+        document.getElementById("jspsychTargetMLP").style.width = "100%";
+        document.getElementById("jspsychTargetMLP").style.top = "0%";
+        document.getElementById("jspsychTargetMLP").style.left = "0%";
+        document.getElementById("jspsychTargetMLP").style.margin = "0";
+        var sf = '90%';
+        var lh = '150%';
+
+        var htmlStr = '<h2 style="text-align:left;line-height:190%;margin:'+mWidth+';">Consent form &ndash; Participant providing own consent</h2><p style="text-align:left;font-weight:bold;">Declaration by the participant</p>' +
+        '<ul style="text-align:left;line-height:190%;margin:'+mWidth+';"><li>I understand I am being asked to provide consent to participate in this research study.</li>' +
+        '<li>I have read the Participant Information Sheet or someone has read it to me in a language that I understand.</li>' +
+        '<li>I understand the purposes, study tasks and risks of the research described in the study.</li>' +
+        '<li>I provide my consent for the information collected about me to be used for the purpose of this research study only.</li>' +
+        '<li>I have been given contact details of the researchers to enable me to ask questions about my participation.</li>' +
+        '<li>I freely agree to participate in this research study as described and understand that I am free to withdraw at any time during the study and withdrawal will not affect my relationship with any of the named organisations and/or research team members.</li></ul><br>' +
+        '<p><b>Please click on the appropriate button below.</b></p><br>';
+
+        return htmlStr;
+    },
+    choices: ['<p style="font-size:130%;line-height:120%;"><b>I consent<br>to participate</b></p>', '<p style="font-size:130%;line-height:120%;"><b>I DO NOT consent<br>to participate</b></p>'],
+    button_html: ['<button class="consentButton" style="vertical-align:middle;width:200px;"><span>%choice%</span></button><br><br>', '<button class="noConsentButton" style="vertical-align:middle;width:200px;"><span>%choice%</span></button><br><br>'],
+    margin_horizontal: '50px',
+    on_finish: function(data) {
+        if (data.button_pressed == '0') {
+            consentDenied = false;
+            document.getElementById("jspsychTargetMLP").style.position = "absolute";
+            document.getElementById("jspsychTargetMLP").style.width = winWidth + "px";
+            document.getElementById("jspsychTargetMLP").style.marginLeft = -winWidth/2+"px";
+            document.getElementById("jspsychTargetMLP").style.left = "50%";
+            var today = new Date();
+            var startTime = today.getFullYear()+'-'+pad((today.getMonth()+1),2)+'-'+pad(today.getDate(),2)+'_'+pad(today.getHours(),2) + ":" + pad(today.getMinutes(),2) + ":" + pad(today.getSeconds(),2);
+
+            jsPsych.data.addDataToLastTrial({
+                sonaID: sona_id,
+                resultsID: resultsID,
+                startTime: startTime
+            });
+
+            if (jatosVersion == true) {
+                // var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).json();
+                var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).csv();
+                jatos.submitResultData(result_for_JATOS);
+            };
+        }
+    }
+}
+
+var no_consent_given = {
+    type: "html-keyboard-response-mlp",
+    stimulus: '<p style="text-align:centre;font-size:130%;line-height:160%;">You have chosen not to participate in this experiment.<br>It\'s now OK to close this window (please do not use the "back" button on your browser).<br><br><br></p>',
+    choices: jsPsych.NO_KEYS
+}
+
+var consent_conditional = {
+    timeline: [no_consent_given],
+    conditional_function: function() {return consentDenied}
+}
+
+var run_consent_procedure = {
+    timeline: [piscf, consent_form, consent_conditional]
+}
+
+var do_not_close_instructions = {
+    type: "instructions",
+    pages: ['<p style="text-align:left;font-size:120%"><b>Please complete this task in a quiet environment, with as few distractions as possible &ndash; please turn off your phone (or put it on silent).<br><br>Please do not close this window or use the "Back" button on your browser until you are told that the experiment is complete!</b><br><br></p>'],
+    show_clickable_nav: true,
+    post_trial_gap: 0
+};
+
+var demographics = {
+    type: "demographic-response",
+    stimulus:     '<p style="text-align:left;font-size:120%">If you are happy to do so, please enter demographic information below.<br>You can leave an item blank if you would prefer not to say.<br><br></p>' +
+    '<p style="text-align:left;">' +
+    '<!-- Gender -->' +
+    '<label for="gender"><b>Gender: &nbsp;</b></label>' +
+    '<input type="radio" name="gender" value="male" /> Male &nbsp; ' +
+    '<input type="radio" name="gender" value="female" /> Female &nbsp;' +
+    '<input type="radio" name="gender" value="other" /> Other<br /><br />' +
+    '<!-- Age -->' +
+    '<label for="age"><b>Age: &nbsp;</b></label><input id="age" name="age" /><br /><br />' +
+    '<!-- Language -->' +
+    '<label for="language"><b>Native language(s): &nbsp;</b></label>' +
+    '<input id="language" name="language" /><br /><br />',
+
+    choices: ['<p style="font-size:130%;line-height:0%;"><b>Next ></b></p>'],
+
+    on_finish: function(trial_data) {
+        jsPsych.data.addDataToLastTrial({
+            gender: p_gender,
+            age: p_age,
+            language: p_language
+        });
+    }
+};
+
+
+var debrief = {
+    type: "html-button-response",
+    stimulus: function() {
+
+        document.getElementById("jspsychTargetMLP").style.position = "static";
+        document.getElementById("jspsychTargetMLP").style.height = "100%";
+        document.getElementById("jspsychTargetMLP").style.width = "100%";
+        document.getElementById("jspsychTargetMLP").style.top = "0%";
+        document.getElementById("jspsychTargetMLP").style.left = "0%";
+        document.getElementById("jspsychTargetMLP").style.margin = "0";
+
+        var sf = '100%';
+        var lh = '160%';
+
+        var htmlStr = '<p style="text-align:left;font-size:120%;"><b>DEBRIEF</b></b><p style="text-align:left;font-size:'+sf+';line-height:'+lh+';">You earned '+numberWithCommas(totalPoints)+' points in this task &ndash; well done! When we have finished collecting data for this study, if you are in the top 25% of participants you will receive ' + prizeStrShort + '. We will send this prize to the email address that you entered earlier (if you did not enter an email address, you will not be eligible for the prize).<br><br>'
+        htmlStr += 'In this study, we are investigating the factors that influence when people will be distracted. You may have found that sometimes, while you were searching for the diamond, you were distracted by the coloured shape presented in the display. In particular, we\'re interested in the effect of rewards on distraction: are people more likely to be distracted by a colour that signals that relatively large rewards might be available, or can people learn to prevent themselves from being distracted (and hence respond more quickly) when a large reward is at stake?<br><br>The experiment is now complete – thanks for taking part! We realise that this is a long and somewhat taxing task, and we really appreciate your participation.<br><br>We will send a copy of the answers to the "standard" debriefing questions to your email address.</p><br>';
+        return htmlStr;
+    },
+    choices: ['Please click here to acknowledge that you have<br>received this debriefing information'],
+    button_html: '<button class="endTestButton" style="vertical-align:middle;font-size:120%;line-height:150%"><span>%choice%</span></button>',
+    on_finish: function() {
+        if (jatosVersion == true) {
+            // var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).json();
+            var result_for_JATOS = jsPsych.data.get().ignore(fieldsToIgnore).csv();
+            jatos.submitResultData(result_for_JATOS);
+        };
+    }
+};
+
+var completion_url = '';
+
+// var expt_totally_finished = {
+//     type: "html-keyboard-response-mlp",
+//     stimulus: function(){return '<p style="text-align:centre;font-size:130%;line-height:160%;">The experiment is now complete &ndash; thanks for taking part!<br>We appreciate the time you\'ve taken.<br><br><b>Please <a href="' + completion_url + '">click here</a> to be returned to Sona and receive your credit.</b><br><br><br></p>'},
+//     choices: jsPsych.NO_KEYS
+// };
+
+// ******************* FADES ******************
+
+var fadeToBlack;
+var fadeToWhite;
+var fadeStep = 2;
+var lightnessVal;
+
+var fadeDuration = 17 * 100 / fadeStep;  // Assume 60 Hz refresh (so 17ms frame update)
+
+
+var fadeToBlackTrial = {
+    type: "html-keyboard-response-mlp",
+    stimulus: "",
+    trial_duration: 1,
+    response_ends_trial: false,
+    post_trial_gap: fadeDuration + initialPauseDuration,
+    on_finish: function() {
+        lightnessVal = 100;
+        requestAnimationFrame(fadeToBlackFn);
+    }
+};
+
+var fadeToWhiteTrial = {
+    type: "html-keyboard-response-mlp",
+    stimulus: "",
+    trial_duration: 1,
+    response_ends_trial: false,
+    post_trial_gap: fadeDuration,
+    on_finish: function() {
+        lightnessVal = 0;
+        requestAnimationFrame(fadeToWhiteFn);
+    }
+};
+
+
+var usingComputer = true;
+(function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) usingComputer = false;})(navigator.userAgent||navigator.vendor||window.opera);
+
+function detectMob() {
+  const toMatch = [/Android/i,/webOS/i,/iPhone/i,/iPad/i,/iPod/i,/BlackBerry/i,/Windows Phone/i];
+  return toMatch.some((toMatchItem) => {
+      return navigator.userAgent.match(toMatchItem);
+  });
+}
+var usingMob = detectMob()
+if (usingMob == true) {usingComputer = false};
+
+var using_mobile_device = {
+    type: "instructions",
+    pages: ['<p style="text-align:left;font-size:150%">You seem to be using a mobile device so you will not currently be able to complete this study.<br><br>To complete this study, please visit this website using a computer with a keyboard and mouse/trackpad.</p>']
+};
+
+var audio_test1 = {
+    type: "html-keyboard-response-mlp",
+    stimulus: '<p style="text-align:centre;font-size:150%;line-height:160%;"><b>Welcome!</b></p><p style="text-align:centre;font-size:130%;line-height:160%;">You will need to have audio enabled in order to take part in this experiment. Before we start, we will check that you have sound turned on: we will play the sound of someone speaking a number, and then ask you to enter this number on the next screen.<br><br>Please press space to hear the spoken number.<br><br></p>',
+    choices: [' ']
+};
+
+var madeIncorrectAudioResponse = false;
+
+var audio_test2 = {
+    type: "audio-keyboard-response-mlp",
+    stimulus: ts+'audioTestStim.mp3',
+    prompt: function() {
+        var tempStr = '';
+        if (madeIncorrectAudioResponse == true) {tempStr = 'Incorrect response - please listen again'};
+        return tempStr;
+    },
+    choices: jsPsych.NO_KEYS,
+    response_ends_trial: false,
+    trial_ends_after_audio: true
+}
+
+var enteredNum = 0;
+var loopAudioTest = true;
+var correctAudioTestAnswer = 416;
+
+var audio_test3 = {
+    type: "survey-text-mlp",
+    questions: [{prompt: "<p style='text-align:centre;font-size:120%;line-height:140%;'><b>Please type the number that you heard into the box below,<br>then click the 'Continue' button.</b></p><p style='text-align:centre;font-size:100%;line-height:140%;'>If you would like to hear the number again,<br>you can leave the box empty and click 'Continue'<br><br></p>", fontsize: '150%', rows: 1, columns: 3}],
+    button_label: 'Continue',
+    numeric_only: true,
+    max_number: 999,
+    on_finish: function(data) {
+        enteredNum = data.responses.replace('Q0','');
+        enteredNum = enteredNum.replace(/[^\d]/g, '');
+        enteredNum = parseInt(enteredNum);
+        if (enteredNum == correctAudioTestAnswer) {loopAudioTest = false} else {madeIncorrectAudioResponse = true};
+    }
+};
+
+var audio_test_loop = {
+    timeline: [audio_test2, audio_test3],
+    loop_function: function() {return loopAudioTest}
+}
+var run_audio_test = {
+    timeline: [audio_test1, audio_test_loop]
+}
+
+// ******************* SET TIMELINE AND RUN EXPT ******************
+
+var exptTimeline = [];
+
+instSet = 0;
+
+if (usingComputer) {
+    exptTimeline.push(preload_stimuli);
+    exptTimeline.push(run_audio_test);
+    exptTimeline.push(run_consent_procedure);
+    exptTimeline.push(do_not_close_instructions);
+    exptTimeline.push({
+        type: 'fullscreen',
+        fullscreen_mode: true
+    });
+    exptTimeline.push(demographics);
+    exptTimeline.push(practice_instructions);
+    exptTimeline.push(fadeToBlackTrial);
+    exptTimeline.push(run_practice_phase);
+    exptTimeline.push(fadeToWhiteTrial);
+    exptTimeline.push(main_instructions1);
+    exptTimeline.push(main_instructions2);
+    exptTimeline.push(get_prize_info);
+    exptTimeline.push(fadeToBlackTrial);
+    exptTimeline.push(run_main_task);
+    exptTimeline.push(fadeToWhiteTrial);
+    exptTimeline.push(choice_instructions);
+    exptTimeline.push(fadeToBlackTrial);
+    exptTimeline.push(run_choiceTest);
+    exptTimeline.push(run_valueEstimationTest);
+    exptTimeline.push(fadeToWhiteTrial);
+    exptTimeline.push(expt_finished_questions);
+    exptTimeline.push({
+        type: 'fullscreen',
+        fullscreen_mode: false
+    });
+    exptTimeline.push(debrief);
+} else {
+    exptTimeline.push(using_mobile_device);
+}
+
+
+jsPsych.data.addProperties({
+    rSeed: rSeed,
+    colBalance: colBalance
+});
+
+if (jatosVersion == true) {
+    jatos.onLoad(function () {
+        if (sonaVersion == true){sona_id = jatos.urlQueryParameters.pID};
+        var finish_url_base = jatos.studyJsonInput.finish_url_base
+        var completion_url = finish_url_base + sona_id; // CHANGE THIS WHEN YOU HAVE THE CORRECT SONA URL
+        var finish_msg = 'The experiment is now complete &ndash; thanks for taking part!<br>We appreciate the time you\'ve taken.<br><br><b>Please <a href="' + completion_url + '">click here</a> to be returned to Sona and receive your credit.</b><br><br><br></p>';
+        jsPsych.init({
+            timeline: exptTimeline,
+            display_element: jspsychTargetMLP,
+            on_finish: function() {
+                document.write('<div id="endscreen" class="endscreen" style="width:100%"><div class="endscreen" style="text-align:center; font-family:Segoe UI, Arial, sans-serif; font-size:130%;line-height:160%;margin:0 auto"><p><br><br><br>' +finish_msg +'</p></div></div>')
+            }
+        });
+    });
+} else {
+    jsPsych.init({
+        timeline: exptTimeline,
+        display_element: jspsychTargetMLP
+    });
+};
+
+function fadeToBlackFn() {
+    lightnessVal -= fadeStep;
+    if (lightnessVal <= 0) {
+        lightnessVal = 0;
+        document.getElementById("jspsychTargetMLP").style.color = "white";
+    };
+    document.body.style.backgroundColor = "hsl(0,0%,"+lightnessVal+"%)";
+    if (lightnessVal > 0) {
+        requestAnimationFrame(fadeToBlackFn);
+    };
+};
+
+function fadeToWhiteFn() {
+    lightnessVal += fadeStep;
+    if (lightnessVal >= 100) {
+        lightnessVal = 100;
+        document.getElementById("jspsychTargetMLP").style.color = "black";
+    };
+    document.body.style.backgroundColor = "hsl(0,0%,"+lightnessVal+"%)";
+    if (lightnessVal < 100) {
+        requestAnimationFrame(fadeToWhiteFn);
+    };
+};
+
+
+function shuffleArray(myArray) {
+    var randNum, tempStore, j;
+    for (j = myArray.length; j; j--) {
+        randNum = Math.floor(Math.random() * j);
+        tempStore = myArray[j - 1];
+        myArray[j - 1] = myArray[randNum];
+        myArray[randNum] = tempStore;
+    }
+};
+
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+function pad(n, len) {
+    s = n.toString();
+    if (s.length < len) {
+        s = ('000' + s).slice(-len);
+    }
+    return s;
+};
+
+
+</script>
+
+</html>
