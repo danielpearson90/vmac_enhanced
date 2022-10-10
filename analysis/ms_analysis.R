@@ -6,15 +6,6 @@ source(here("preprocessing", "preprocessing.R"))
 source(here("other", "dz_calculator.R"))
 
 
-# DEMOGRAPHICS ------------------------------------------------------------
-
-# gender_count <- completed_df %>%
-#   count(gender)
-
-# age_summary <- completed_df %>%
-#   summarize(mean_age = mean(age),
-#             sd_age = sd(age))
-
 # RT ANALYSIS -------------------------------------------------------------
 # rts pass the normality tests
 shapiro.test(long_rt_df %>% filter(trial_type == "High-enriched") %>% pull(rt))
@@ -33,13 +24,12 @@ high_absent_es <- dz_calculator(processed_df$rt_high, processed_df$rt_abs)
 low_absent_es <- dz_calculator(processed_df$rt_low, processed_df$rt_abs)
 high_low_es <- dz_calculator(processed_df$rt_low, processed_df$rt_high)
 enriched_low_es <- dz_calculator(processed_df$rt_low, processed_df$rt_enr)
+enriched_high_es <- dz_calculator(processed_df$rt_enr, processed_df$rt_high)
 
 # vmac scores for enriched and high
-vmac_standard <- t.test(processed_df$vmac_standard)
-vmac_enriched <- t.test(processed_df$vmac_enriched)
-vmac_contrast <- t.test(processed_df$vmac_standard, processed_df$vmac_enriched, paired = T)
-
-vmac_contrast_es <- dz_calculator(processed_df$vmac_standard, processed_df$vmac_enriched)
+vmac_standard <- t.test(processed_df$rt_high, processed_df$rt_low, paired = T)
+vmac_enriched <- t.test(processed_df$rt_enr, processed_df$rt_low, paired = T)
+enriched_effect <- t.test(processed_df$rt_enr, processed_df$rt_high, paired = T)
 
 # ERROR ANALYSIS -------------------------------------------------------
 
@@ -50,9 +40,6 @@ aov_omni_err <- aov_ez(id = "subNum",
                        anova_table = list(es = "pes"))
 long_err_df <- long_err_df %>%
   mutate(subNum_fct = factor(subNum))
-
-bf <- BayesFactor::anovaBF(err ~ trial_type + subNum_fct, data = long_err_df,
-                           whichRandom = "subNum_fct")
 
 # CHOICE TASK -------------------------------------------------------------
 
