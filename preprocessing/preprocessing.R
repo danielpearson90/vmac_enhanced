@@ -6,6 +6,11 @@ source(here("other", "summarySEwithin2.r"))
 unprocessed_df <- read_csv(here("data", "raw_data", "vmac_sensorywincues_summary_anonymised.csv")) %>%
   select(-starts_with("..."))
 
+unprocessed_extra_df <-  read_csv(here("data", "raw_data", "mpiao_expt2summary_extra_anonymised.csv")) %>%
+  select(-starts_with("..."))
+
+unprocessed_choice_df <- read_csv(here("data", "raw_data", "choice_trial_data.csv"))
+
 did_not_complete_ps <- unprocessed_df %>%
   filter(totalTrials < 640) %>%
   pull(subNum)
@@ -15,11 +20,17 @@ completed_df <- unprocessed_df %>%
 
 processed_df <- completed_df
 
+processed_extra_df <- unprocessed_extra_df %>%
+  filter(!subNum %in% did_not_complete_ps)
+
 many_exclusion_ps <- processed_df %>%
   filter(total_exclusions > 640*.15) %>%
   pull(subNum)
 
 processed_df <- processed_df %>%
+  filter(!subNum %in% many_exclusion_ps)
+
+processed_extra_df <- processed_extra_df %>%
   filter(!subNum %in% many_exclusion_ps)
 
 low_acc_ps <- processed_df %>%
@@ -30,6 +41,7 @@ processed_df <- processed_df %>%
   rowwise() %>%
   mutate(mean_rt = mean(c(rt_enr, rt_high, rt_low, rt_abs))) %>%
   ungroup()
+
 
 rt_cutoff <- processed_df %>%
   summarise(sd_rt = sd(mean_rt),
@@ -43,10 +55,14 @@ slow_ps <- processed_df %>%
 processed_df <- processed_df %>%
   filter(!subNum %in% low_acc_ps)
 
+processed_extra_df <- processed_extra_df %>%
+  filter(!subNum %in% low_acc_ps)
+
 processed_df <- processed_df %>%
   filter(!subNum %in% slow_ps)
 
-
+processed_extra_df <- processed_extra_df %>%
+  filter(!subNum %in% slow_ps)
 
 processed_df <- processed_df %>%
   mutate(err_enr = 1 - acc_enr,
@@ -84,3 +100,6 @@ long_err_df <- processed_df %>%
   mutate(trial_type = factor(trial_type, levels = c("enr", "high", "low", "abs"),
                              labels = c("High-enriched", "High", "Low", "Absent")))
 
+
+processed_choice_df <- unprocessed_choice_df %>%
+  filter(subNum %in% processed_df$subNum)
